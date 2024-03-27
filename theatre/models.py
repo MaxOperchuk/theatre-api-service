@@ -7,10 +7,15 @@ class TheatreHall(models.Model):
     seats_in_row = models.IntegerField()
 
 
+class Actor(models.Model):
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+
+
 class Play(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    actors = models.ManyToManyField("Actor")
+    actors = models.ManyToManyField(Actor)
     genres = models.ManyToManyField("Genre")
 
 
