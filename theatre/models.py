@@ -29,3 +29,11 @@ class Performance(models.Model):
         TheatreHall, on_delete=models.CASCADE
     )
     show_time = models.DateTimeField()
+
+
+class Ticket(models.Model):
+    row = models.IntegerField()
+    seat = models.IntegerField()
+    performance = models.ForeignKey(Performance, on_delete=models.CASCADE)
+    reservation = models.ForeignKey("Reservation")
+
