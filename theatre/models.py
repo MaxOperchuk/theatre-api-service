@@ -6,3 +6,7 @@ class TheatreHall(models.Model):
     rows = models.IntegerField()
     seats_in_row = models.IntegerField()
 
+
+class Performance(models.Model):
+    play = models.ForeignKey("Play", on_delete=models.CASCADE)
+    theatre_hall = models.ForeignKey(TheatreHall, on_delete=models.CASCADE)
