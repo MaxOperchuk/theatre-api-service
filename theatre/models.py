@@ -8,6 +8,10 @@ class TheatreHall(models.Model):
     rows = models.IntegerField()
     seats_in_row = models.IntegerField()
 
+    @property
+    def capacity(self) -> int:
+        return self.rows * self.seats_in_row
+
     def __str__(self):
         return self.name
 
@@ -30,8 +34,8 @@ class Actor(models.Model):
 class Play(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    actors = models.ManyToManyField(Actor)
-    genres = models.ManyToManyField(Genre)
+    actors = models.ManyToManyField(Actor, related_name="plays")
+    genres = models.ManyToManyField(Genre, related_name="plays")
 
     def __str__(self):
         return self.title
