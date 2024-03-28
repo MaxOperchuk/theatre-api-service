@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.db.models import F, Count
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
@@ -82,6 +83,28 @@ class PlayViewSet(viewsets.ModelViewSet):
 
         return PlaySerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "title",
+                type={"type": "string"},
+                description="Filter by title (ex. ?title=something)"
+            ),
+            OpenApiParameter(
+                "genres",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by genres ids (ex. ?genre=2,3)"
+            ),
+            OpenApiParameter(
+                "actors",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by actors ids (ex. ?actors=2,3)"
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class PerformanceViewSet(viewsets.ModelViewSet):
     queryset = (
@@ -119,6 +142,23 @@ class PerformanceViewSet(viewsets.ModelViewSet):
             return PerformanceDetailSerializer
 
         return PerformanceSerializer
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "date",
+                type={"type": "string"},
+                description="Filter by date (ex. ?date=2024-10-09)"
+            ),
+            OpenApiParameter(
+                "play_id_str",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by plays ids (ex. ?plays=2,3)"
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class ReservationPagination(PageNumberPagination):
