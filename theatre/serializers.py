@@ -34,7 +34,26 @@ class ActorSerializer(serializers.ModelSerializer):
 class PlaySerializer(serializers.ModelSerializer):
     class Meta:
         model = Play
-        fields = "__all__"
+        fields = ("id", "title", "description", "actors", "genres",)
+
+
+class PlayRetrieveSerializer(serializers.ModelSerializer):
+    actors = serializers.StringRelatedField(
+        many=True, read_only=True
+    )
+    genres = serializers.StringRelatedField(
+        many=True, read_only=True
+    )
+
+    class Meta:
+        model = Play
+        fields = ("id", "title", "description", "actors", "genres", "image")
+
+
+class PlayImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Play
+        fields = ("id", "image")
 
 
 class PlayListSerializer(serializers.ModelSerializer):
@@ -102,7 +121,7 @@ class TicketSeatsSerializer(TicketSerializer):
 
 
 class PerformanceDetailSerializer(serializers.ModelSerializer):
-    play = PlayListSerializer(read_only=True)
+    play = PlayRetrieveSerializer(read_only=True)
     theatre_hall = TheatreHallSerializer(read_only=True)
     taken_places = TicketSeatsSerializer(
         source="tickets", many=True, read_only=True
