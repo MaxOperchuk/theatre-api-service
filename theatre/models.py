@@ -19,6 +19,9 @@ class TheatreHall(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=255)
 
+    class Meta:
+        ordering = ["name"]
+
     def __str__(self):
         return self.name
 
@@ -49,6 +52,9 @@ class Performance(models.Model):
     def __str__(self):
         return f"{self.play.title} {str(self.show_time)}"
 
+    class Meta:
+        ordering = ["show_time"]
+
 
 class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -60,6 +66,9 @@ class Reservation(models.Model):
 
     def __str__(self):
         return str(self.created_at)
+
+    class Meta:
+        ordering = ["created_at"]
 
 
 class Ticket(models.Model):
