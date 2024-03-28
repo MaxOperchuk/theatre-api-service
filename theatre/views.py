@@ -2,8 +2,11 @@ from datetime import datetime
 
 from django.db.models import F, Count
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from theatre.models import (
@@ -27,7 +30,7 @@ from theatre.serializers import (
     ReservationListSerializer,
     PlayListSerializer,
     PerformanceListSerializer,
-    PerformanceDetailSerializer
+    PerformanceDetailSerializer, PlayImageSerializer, PlayRetrieveSerializer
 )
 
 
@@ -78,10 +81,33 @@ class PlayViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
 
-        if self.action in ("list", "retrieve"):
+        if self.action == "list":
             return PlayListSerializer
 
+        if self.action == "retrieve":
+            return PlayRetrieveSerializer
+
+        if self.action == "upload_image":
+            return PlayImageSerializer
+
         return PlaySerializer
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="upload-image",
+        permission_classes=[IsAdminUser],
+    )
+    def upload_image(self, request, pk=None):
+        """Endpoint for uploading image to specific movie"""
+        play = self.get_object()
+        serializer = self.get_serializer(play, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         parameters=[
@@ -108,7 +134,7 @@ class PlayViewSet(viewsets.ModelViewSet):
 
 class PerformanceViewSet(viewsets.ModelViewSet):
     queryset = (
-        Performance.objects.all()
+        Performance.objects
         .select_related("play", "theatre_hall")
         .annotate(
             tickets_available=(
@@ -171,12 +197,12 @@ class ReservationViewSet(
     mixins.CreateModelMixin,
     GenericViewSet,
 ):
-    queryset = Reservation.objects.all()
+    queryset = Reservation.objects.prefetch_related("tickets__performance__theatre_hall")
     serializer_class = ReservationSerializer
     pagination_class = ReservationPagination
 
     def get_queryset(self):
-        return Reservation.objects.filter(user=self.request.user)
+        return self.queryset.filter(user=self.request.user)
 
     def get_serializer_class(self):
         if self.action == "list":
