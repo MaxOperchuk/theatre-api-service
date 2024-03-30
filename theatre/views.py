@@ -5,7 +5,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -15,8 +15,7 @@ from theatre.models import (
     Actor,
     Play,
     Performance,
-    Reservation,
-    Ticket
+    Reservation
 )
 
 from theatre.serializers import (
@@ -26,7 +25,6 @@ from theatre.serializers import (
     PlaySerializer,
     PerformanceSerializer,
     ReservationSerializer,
-    TicketSerializer,
     ReservationListSerializer,
     PlayListSerializer,
     PerformanceListSerializer,
@@ -134,8 +132,7 @@ class PlayViewSet(viewsets.ModelViewSet):
 
 class PerformanceViewSet(viewsets.ModelViewSet):
     queryset = (
-        Performance.objects
-        .select_related("play", "theatre_hall")
+        Performance.objects.select_related("play", "theatre_hall")
         .annotate(
             tickets_available=(
                     F("theatre_hall__rows") * F("theatre_hall__seats_in_row")
@@ -197,9 +194,10 @@ class ReservationViewSet(
     mixins.CreateModelMixin,
     GenericViewSet,
 ):
-    queryset = Reservation.objects.prefetch_related("tickets__performance__theatre_hall")
+    queryset = Reservation.objects.prefetch_related("tickets")
     serializer_class = ReservationSerializer
     pagination_class = ReservationPagination
+    permission_classes = (IsAuthenticated, )
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
