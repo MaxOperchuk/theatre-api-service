@@ -48,8 +48,12 @@ def movie_image_file_path(instance, filename):
 class Play(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    actors = models.ManyToManyField(Actor, related_name="plays")
-    genres = models.ManyToManyField(Genre, related_name="plays")
+    actors = models.ManyToManyField(
+        Actor, related_name="plays", blank=True
+    )
+    genres = models.ManyToManyField(
+        Genre, related_name="plays", blank=True
+    )
     image = models.ImageField(null=True, upload_to=movie_image_file_path)
 
     def __str__(self):
@@ -138,6 +142,3 @@ class Ticket(models.Model):
     class Meta:
         unique_together = ("performance", "row", "seat")
         ordering = ["row", "seat"]
-
-
-
