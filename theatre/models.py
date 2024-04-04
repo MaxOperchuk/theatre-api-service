@@ -149,5 +149,10 @@ class Ticket(models.Model):
         )
 
     class Meta:
-        unique_together = ("performance", "row", "seat")
+        constraints = [
+            UniqueConstraint(
+                fields=["performance", "row", "seat"],
+                name="unique_performance_row_seat"
+            )
+        ]
         ordering = ["row", "seat"]
