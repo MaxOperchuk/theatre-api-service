@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from django.db.models import F, Count
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -17,7 +16,7 @@ from theatre.models import (
     Performance,
     Reservation
 )
-
+from theatre.pagination import ReservationPagination
 from theatre.serializers import (
     TheatreHallSerializer,
     GenreSerializer,
@@ -30,6 +29,7 @@ from theatre.serializers import (
     PerformanceListSerializer,
     PerformanceDetailSerializer, PlayImageSerializer, PlayRetrieveSerializer
 )
+from theatre.swagger_schemas import play_schema, performance_schema
 
 
 class TheatreHallViewSet(viewsets.ModelViewSet):
@@ -88,7 +88,7 @@ class PlayViewSet(viewsets.ModelViewSet):
         if self.action == "upload_image":
             return PlayImageSerializer
 
-        return PlaySerializer
+        return self.serializer_class
 
     @action(
         methods=["POST"],
@@ -107,25 +107,7 @@ class PlayViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                "title",
-                type={"type": "string"},
-                description="Filter by title (ex. ?title=something)"
-            ),
-            OpenApiParameter(
-                "genres",
-                type={"type": "list", "items": {"type": "number"}},
-                description="Filter by genres ids (ex. ?genre=2,3)"
-            ),
-            OpenApiParameter(
-                "actors",
-                type={"type": "list", "items": {"type": "number"}},
-                description="Filter by actors ids (ex. ?actors=2,3)"
-            )
-        ]
-    )
+    @extend_schema(**play_schema)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -164,29 +146,11 @@ class PerformanceViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             return PerformanceDetailSerializer
 
-        return PerformanceSerializer
+        return self.serializer_class
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                "date",
-                type={"type": "string"},
-                description="Filter by date (ex. ?date=2024-10-09)"
-            ),
-            OpenApiParameter(
-                "play_id_str",
-                type={"type": "list", "items": {"type": "number"}},
-                description="Filter by plays ids (ex. ?plays=2,3)"
-            )
-        ]
-    )
+    @extend_schema(**performance_schema)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-
-
-class ReservationPagination(PageNumberPagination):
-    page_size = 10
-    max_page_size = 100
 
 
 class ReservationViewSet(
@@ -206,7 +170,7 @@ class ReservationViewSet(
         if self.action == "list":
             return ReservationListSerializer
 
-        return ReservationSerializer
+        return self.serializer_class
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
