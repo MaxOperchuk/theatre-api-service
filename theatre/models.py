@@ -4,6 +4,7 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.utils.text import slugify
 
 
@@ -61,8 +62,16 @@ class Play(models.Model):
 
 
 class Performance(models.Model):
-    play = models.ForeignKey(Play, on_delete=models.CASCADE)
-    theatre_hall = models.ForeignKey(TheatreHall, on_delete=models.CASCADE)
+    play = models.ForeignKey(
+        Play,
+        on_delete=models.CASCADE,
+        related_name="performances"
+    )
+    theatre_hall = models.ForeignKey(
+        TheatreHall,
+        on_delete=models.CASCADE,
+        related_name="performances"
+    )
     show_time = models.DateTimeField()
 
     def __str__(self):
